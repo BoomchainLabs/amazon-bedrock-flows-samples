@@ -21,11 +21,13 @@ This video demonstrates how to create and use Amazon Bedrock Flows with JSON tem
 - [How To Use](#how-to-use)
 - [Repository Structure](#repository-structure)
 - [Flow Definition (JSON)](#flow-definition-json)
+- [Deploying Bedrock Flows using CloudFormation](#deploying-bedrock-flows-using-cloudformation)
 - [Usage Examples](#usage-examples)
 - [Flow Templates](#flow-templates)
 - [Best Practices](#best-practices)
 - [Resources](#resources)
 - [Contributing](#contributing)
+
 
 ## Overview
 
@@ -308,6 +310,259 @@ amazon-bedrock-flows-samples/
 }
 ```
 
+## Deploying Bedrock Flows using CloudFormation
+
+You can deploy the Bedrock Flows using the provided CloudFormation template. The template accepts the following parameters:
+
+- `AccountId`: AWS Account ID
+- `RoleName`: IAM Role Name for Bedrock Flow execution
+
+### Steps to Deploy
+
+1. Navigate to the `cloudformation` directory:
+
+```sh
+cd amazon-bedrock-flows-samples/cloudformation
+```
+2. Deploy the CloudFormation stack using the AWS CLI:
+
+```sh
+aws cloudformation create-stack --stack-name bedrock-flows-stack --template-body file://bedrock_flows.json --parameters ParameterKey=AccountId,ParameterValue=<ACCOUNT_ID> ParameterKey=RoleName,ParameterValue=<ROLE_NAME>
+```
+
+Replace <ACCOUNT_ID> and <ROLE_NAME> with the appropriate values.
+
+3. Wait for the stack creation to complete. You can check the status of the stack using the AWS Management Console or the AWS CLI:
+   
+```sh
+aws cloudformation describe-stacks --stack-name bedrock-flows-stack
+```
+
+4. Once the stack creation is complete, you can find the ID of the created Bedrock Flow in the stack outputs.
+
+
+
+### Flow Definition Options
+In above example, we have created the flow using the FlowDefinition inline. There are also other options to define the flow:
+
+
+**DefinitionString**: Provide the definition as a JSON-formatted string in the DefinitionString property.
+**DefinitionS3Location**: Provide an Amazon S3 location in the DefinitionS3Location property that matches the FlowDefinition.
+
+If you use the DefinitionString or DefinitionS3Location property, you can use the DefinitionSubstitutions property to define key-value pairs to replace at runtime.
+
+For more details, refer to the [AWS CloudFormation documentation]('https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-bedrock-flow.html')
+
+
+**Example CloudFormation Template**
+
+Here is an example of the CloudFormation template using the FlowDefinition inline:
+
+```json
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "AWS CloudFormation Template to create an Amazon Bedrock Flow using FlowDefinition",
+    "Parameters": {
+        "AccountId": {
+            "Type": "String",
+            "Description": "AWS Account ID"
+        },
+        "RoleName": {
+            "Type": "String",
+            "Description": "IAM Role Name for Bedrock Flow execution"
+        }
+    },
+    "Resources": {
+        "BedrockFlow": {
+            "Type": "AWS::Bedrock::Flow",
+            "Properties": {
+                "Name": "SimpleFlow_CFN",
+                "ExecutionRoleArn": {
+                    "Fn::Sub": "arn:aws:iam::${AccountId}:role/${RoleName}"
+                },
+                "Description": "A simple flow deployed using Cloud formation.",
+                "Definition": {
+                    "Nodes": [
+                        {
+                            "Type": "Input",
+                            "Name": "FlowInputNode",
+                            "Outputs": [
+                                {
+                                    "Name": "document",
+                                    "Type": "Array"
+                                }
+                            ]
+                        },
+                        {
+                            "Type": "Iterator",
+                            "Name": "PromptIterator",
+                            "Inputs": [
+                                {
+                                    "Name": "array",
+                                    "Type": "Array",
+                                    "Expression": "$.data"
+                                }
+                            ],
+                            "Outputs": [
+                                {
+                                    "Name": "arrayItem",
+                                    "Type": "String"
+                                },
+                                {
+                                    "Name": "arraySize",
+                                    "Type": "Number"
+                                }
+                            ]
+                        },
+                        {
+                            "Type": "Prompt",
+                            "Name": "PromptProcessor",
+                            "Configuration": {
+                                "Prompt": {
+                                    "SourceConfiguration": {
+                                        "Inline": {
+                                            "ModelId": "anthropic.claude-3-sonnet-20240229-v1:0",
+                                            "TemplateType": "TEXT",
+                                            "InferenceConfiguration": {
+                                                "Text": {
+                                                    "Temperature": 0.7,
+                                                    "TopP": 1
+                                                }
+                                            },
+                                            "TemplateConfiguration": {
+                                                "Text": {
+                                                    "Text": "{{userPrompt}}"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "Inputs": [
+                                {
+                                    "Name": "userPrompt",
+                                    "Type": "String",
+                                    "Expression": "$.data"
+                                }
+                            ],
+                            "Outputs": [
+                                {
+                                    "Name": "modelCompletion",
+                                    "Type": "String"
+                                }
+                            ]
+                        },
+                        {
+                            "Type": "Collector",
+                            "Name": "ResponseCollector",
+                            "Inputs": [
+                                {
+                                    "Name": "arrayItem",
+                                    "Type": "String",
+                                    "Expression": "$.data"
+                                },
+                                {
+                                    "Name": "arraySize",
+                                    "Type": "Number",
+                                    "Expression": "$.data"
+                                }
+                            ],
+                            "Outputs": [
+                                {
+                                    "Name": "collectedArray",
+                                    "Type": "Array"
+                                }
+                            ]
+                        },
+                        {
+                            "Type": "Output",
+                            "Name": "FlowOutput",
+                            "Inputs": [
+                                {
+                                    "Name": "document",
+                                    "Type": "Array",
+                                    "Expression": "$.data"
+                                }
+                            ]
+                        }
+                    ],
+                    "Connections": [
+                        {
+                            "Name": "Input_to_Iterator",
+                            "Source": "FlowInputNode",
+                            "Target": "PromptIterator",
+                            "Type": "Data",
+                            "Configuration": {
+                                "Data": {
+                                    "SourceOutput": "document",
+                                    "TargetInput": "array"
+                                }
+                            }
+                        },
+                        {
+                            "Name": "Iterator_to_Prompt",
+                            "Source": "PromptIterator",
+                            "Target": "PromptProcessor",
+                            "Type": "Data",
+                            "Configuration": {
+                                "Data": {
+                                    "SourceOutput": "arrayItem",
+                                    "TargetInput": "userPrompt"
+                                }
+                            }
+                        },
+                        {
+                            "Name": "Prompt_to_Collector",
+                            "Source": "PromptProcessor",
+                            "Target": "ResponseCollector",
+                            "Type": "Data",
+                            "Configuration": {
+                                "Data": {
+                                    "SourceOutput": "modelCompletion",
+                                    "TargetInput": "arrayItem"
+                                }
+                            }
+                        },
+                        {
+                            "Name": "Iterator_to_Collector_Size",
+                            "Source": "PromptIterator",
+                            "Target": "ResponseCollector",
+                            "Type": "Data",
+                            "Configuration": {
+                                "Data": {
+                                    "SourceOutput": "arraySize",
+                                    "TargetInput": "arraySize"
+                                }
+                            }
+                        },
+                        {
+                            "Name": "Collector_to_Output",
+                            "Source": "ResponseCollector",
+                            "Target": "FlowOutput",
+                            "Type": "Data",
+                            "Configuration": {
+                                "Data": {
+                                    "SourceOutput": "collectedArray",
+                                    "TargetInput": "document"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    "Outputs": {
+        "BedrockFlowArn": {
+            "Description": "The ARN of the Bedrock Flow",
+            "Value": {
+                "Ref": "BedrockFlow"
+            }
+        }
+    }
+}
+```
+
 ## Usage Examples
 
 ### 1. KnowledgeBase Flow
@@ -507,3 +762,4 @@ This project is licensed under the MIT-0 License. See the [LICENSE](LICENSE) fil
 ## Forkers 🙌
 
 [![Forkers repo roster for @aws-samples/amazon-bedrock-flows-samples](https://reporoster.com/forks/aws-samples/amazon-bedrock-flows-samples)](https://github.com/aws-samples/amazon-bedrock-flows-samples/network/members)
+
