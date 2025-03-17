@@ -1,6 +1,6 @@
-<h2 align="center">Amazon Bedrock Flows Samples</h2>
+<h2 align="center">Amazon Bedrock Flows Templates</h2>
 <p align="center">
-  👋 Welcome to Amazon Bedrock Flows Samples 👋
+  👋 Welcome to AAmazon Bedrock Flows Templates 👋
 </p>
 
 This repository demonstrates how to import, create, invoke and delete [Amazon Bedrock Flows](https://aws.amazon.com/bedrock/flows/) using JSON Flow definition files, with examples implemented in Python.
