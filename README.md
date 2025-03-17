@@ -753,7 +753,9 @@ This project is licensed under the MIT-0 License. See the [LICENSE](LICENSE) fil
 
 ## Contributors 💪
 
-<a href="https://github.com/aws-samples/amazon-bedrock-flows-samples/graphs/contributors"> <img src="https://contrib.rocks/image?aws-samples/amazon-bedrock-flows-samples" /> </a>
+<a href="https://github.com/aws-samples/amazon-bedrock-flows-samples/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=aws-samples/amazon-bedrock-flows-samples" />
+</a>
 
 ## Stargazers ⭐
 
