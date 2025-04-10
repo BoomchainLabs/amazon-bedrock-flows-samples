@@ -701,10 +701,9 @@ Template demonstrating the use of prompt nodes with content filtering and guardr
 Template for processing multiple inputs and aggregating responses:
 ![Iterator & Collector Flow](docs/images/iterator_collector_flow.png)
 
-- Parallel execution
+- Queued execution
 - Response aggregation
 - Multi-query handling
-- Batch processing
 
 ### 6. [Multi-Agent Flow](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html)
 
