@@ -89,7 +89,7 @@ The script supports various command-line arguments to customize its behavior. He
 #### Basic Usage
 
 ```bash
-python flow_manager.py [arguments]
+python src/bedrock_flow_manager.py [arguments]
 ```
 
 #### Available Arguments
@@ -109,55 +109,55 @@ python flow_manager.py [arguments]
 1. **Basic Usage** - Uses default settings:
 
 ```python
-python flow_manager.py
+python src/bedrock_flow_manager.py
 ```
 
 2. **Specify Region and Profile**:
 
 ```python
-python flow_manager.py --region us-east-1 --profile development
+python src/bedrock_flow_manager.py --region us-east-1 --profile development
 ```
 
 3. **Custom Flow Name**:
 
 ```python
-python flow_manager.py --flow-name "MyCustomFlow"
+python src/bedrock_flow_manager.py --flow-name "MyCustomFlow"
 ```
 
 4. **Test with Single Input**:
 
 ```python
-python flow_manager.py --test-input "Hello, how are you?"
+python src/bedrock_flow_manager.py --test-input "Hello, how are you?"
 ```
 
 5. **Test with Multiple Inputs** (for iterator flows):
 
 ```python
-python flow_manager.py --test-input "Input 1" "Input 2" "Input 3"
+python src/bedrock_flow_manager.py --test-input "Input 1" "Input 2" "Input 3"
 ```
 
 6. **Use Custom Templates Directory**:
 
 ```python
-python flow_manager.py --templates-dir "/path/to/templates"
+python src/bedrock_flow_manager.py --templates-dir "/path/to/templates"
 ```
 
 7. **Clean Up After Testing**:
 
 ```python
-python flow_manager.py --test-input "Test message" --cleanup
+python src/bedrock_flow_manager.py --test-input "Test message" --cleanup
 ```
 
 8. **Use Existing IAM Role**:
 
 ```python
-python flow_manager.py --existing-role "MyBedrockRole"
+python src/bedrock_flow_manager.py --existing-role "MyBedrockRole"
 ```
 
 9. **Combined Example**:
 
 ```python
-python flow_manager.py \
+python src/bedrock_flow_manager.py \
   --region us-west-2 \
   --profile production \
   --flow-name "ProductionFlow" \
